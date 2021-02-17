@@ -4,10 +4,14 @@ type Service struct {
 	List financeGroup
 }
 
+type TickPrice struct {
+
+}
+
 type Spider interface {
-	Start()
-	Close()
-	Tick()
+	Start() error
+	Close() error
+	Tick() float32
 }
 
 type financeGroup map[string]*Spider
