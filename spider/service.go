@@ -1,17 +1,12 @@
 package spider
 
 type Service struct {
-	List financeGroup
+	Finance *Spider
 }
 
 type TickPrice struct {
-
 }
 
-type Spider interface {
-	Start() error
-	Close() error
-	Tick() float32
-}
+func (s *Service) Run() {
 
-type financeGroup map[string]*Spider
+}

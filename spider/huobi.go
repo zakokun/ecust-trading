@@ -1,6 +1,6 @@
 package spider
 
-type Huobi struct {
+type Finance struct {
 	Name string
 	Client struct{}
 }
