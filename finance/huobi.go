@@ -26,6 +26,8 @@ func (h *Huobi) Close() (err error) {
 	return h.Ws.Close()
 }
 
-func (h *Huobi) Tick() (f float32) {
+// TickListener 返回实时价格的channel
+// 持续获取价格数据
+func (h *Huobi) TickListener() (ch chan *Trade) {
 	return
 }
