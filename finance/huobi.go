@@ -1,4 +1,4 @@
-package Finance
+package finance
 
 import (
 	"github.com/gorilla/websocket"

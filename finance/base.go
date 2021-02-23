@@ -1,4 +1,4 @@
-package Finance
+package finance
 
 // Finance 所有交易所要实现的接口
 type Finance interface {
