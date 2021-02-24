@@ -10,8 +10,12 @@ type Finance interface {
 
 // 交易所返回的价格消息
 type Trade struct {
-	From   string // 交易所名称
-	Symbol string // 交易对名称
+	From   string  // 交易所名称
+	Symbol string  // 交易对名称
 	Price  float32 // 价格
-	TS     int64 // 时间戳
+	TS     int64   // 时间戳
+}
+
+func Start() {
+
 }
