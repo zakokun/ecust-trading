@@ -1,4 +1,4 @@
-package finance
+package exchange
 
 import (
 	"github.com/gorilla/websocket"
@@ -28,6 +28,6 @@ func (h *Huobi) Close() (err error) {
 
 // TickListener 返回实时价格的channel
 // 持续获取价格数据
-func (h *Huobi) TickListener() (ch chan *Trade) {
+func (h *Huobi) TickListener(symbol string) (ch chan *Trade) {
 	return
 }
