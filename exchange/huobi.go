@@ -3,12 +3,15 @@ package exchange
 import (
 	"github.com/gorilla/websocket"
 	"log"
+	"math/rand"
 	"net/url"
+	"time"
 )
 
 type Huobi struct {
 	Name string
 	Ws   *websocket.Conn
+	Ch   chan *Trade
 }
 
 func (h *Huobi) Start() (err error) {
@@ -29,6 +32,20 @@ func (h *Huobi) Close() (err error) {
 
 // TickListener 返回实时价格的channel
 // 持续获取价格数据
-func (h *Huobi) TickListener() (ch chan *Trade) {
-	return
+func (h *Huobi) TickListener() chan *Trade {
+	h.Ch = make(chan *Trade, 1024)
+	go func() {
+		for {
+			xx := rand.Float32()
+			td := &Trade{
+				From:   "huobi",
+				Symbol: "BTC/USDT",
+				Price:  xx,
+				TS:     time.Now().Unix(),
+			}
+			h.Ch <- td
+			time.Sleep(time.Second)
+		}
+	}()
+	return h.Ch
 }

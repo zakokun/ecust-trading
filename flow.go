@@ -27,13 +27,15 @@ func (s *Service) Close() {
 func (s *Service) ListenTick() {
 	ch := s.Ex.TickListener()
 	go func() {
-		select {
-		case td, ok := <-ch:
-			if !ok {
-				s.Close()
-				return
+		for {
+			select {
+			case td, ok := <-ch:
+				if !ok {
+					s.Close()
+					return
+				}
+				s.St.GetPrice(td.Price)
 			}
-			s.St.GetPrice(td.Price)
 		}
 	}()
 }

@@ -4,7 +4,6 @@ import (
 	"ecust-trading/conf"
 	"ecust-trading/exchange"
 	"ecust-trading/strategy"
-	"github.com/davecgh/go-spew/spew"
 	"os"
 	"os/signal"
 	"syscall"
@@ -15,9 +14,7 @@ func main() {
 	ex := exchange.New(conf.Get().Trade.Symbol)
 	st := strategy.New()
 	svr := New(ex, st)
-	spew.Dump(conf.Get())
-
-
+	svr.ListenTick()
 	c := make(chan os.Signal, 1)
 	signal.Notify(c, syscall.SIGHUP, syscall.SIGQUIT, syscall.SIGTERM, syscall.SIGINT)
 	for {
