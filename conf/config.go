@@ -10,11 +10,15 @@ import (
 var c *Config
 
 type Config struct {
-	DB     *DB
+	DB    *DBConf
+	Trade *TradeConf
+}
+
+type TradeConf struct {
 	Symbol string
 }
 
-type DB struct {
+type DBConf struct {
 	Addr     string
 	Port     int64
 	User     string
@@ -26,8 +30,8 @@ func init() {
 	configFile := flag.String("c", "./conf/config_template.toml", "conf")
 	flag.Parse()
 
-	Conf := &Config{}
-	_, err := toml.DecodeFile(*configFile, Conf)
+	c = &Config{}
+	_, err := toml.DecodeFile(*configFile, c)
 	if err != nil {
 		fmt.Println("failed to decode config file", configFile, err)
 		panic(err)

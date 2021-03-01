@@ -23,11 +23,12 @@ func (h *Huobi) Start() (err error) {
 }
 
 func (h *Huobi) Close() (err error) {
+	return
 	return h.Ws.Close()
 }
 
 // TickListener 返回实时价格的channel
 // 持续获取价格数据
-func (h *Huobi) TickListener(symbol string) (ch chan *Trade) {
+func (h *Huobi) TickListener() (ch chan *Trade) {
 	return
 }

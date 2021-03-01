@@ -7,7 +7,7 @@ type Ex interface {
 	Start() error
 	Close() error
 	// 实时行情价格的方法 返回消息指针的channel
-	TickListener(symbol string) chan *Trade
+	TickListener() chan *Trade
 }
 
 // 交易所返回的价格消息
@@ -20,8 +20,8 @@ type Trade struct {
 
 func New(sy string) Ex {
 	ex = new(Huobi)
-	if err := ex.Start(); err != nil {
-		panic(err)
-	}
+	//if err := ex.Start(); err != nil {
+	//	panic(err)
+	//}
 	return ex
 }

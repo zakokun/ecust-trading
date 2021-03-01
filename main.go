@@ -4,6 +4,7 @@ import (
 	"ecust-trading/conf"
 	"ecust-trading/exchange"
 	"ecust-trading/strategy"
+	"github.com/davecgh/go-spew/spew"
 	"os"
 	"os/signal"
 	"syscall"
@@ -11,9 +12,10 @@ import (
 )
 
 func main() {
-	ex := exchange.New(conf.Get().Symbol)
+	ex := exchange.New(conf.Get().Trade.Symbol)
 	st := strategy.New()
 	svr := New(ex, st)
+	spew.Dump(conf.Get())
 
 
 	c := make(chan os.Signal, 1)
@@ -22,6 +24,7 @@ func main() {
 		s := <-c
 		switch s {
 		case syscall.SIGQUIT, syscall.SIGTERM, syscall.SIGINT:
+			svr.Close()
 			time.Sleep(time.Second)
 			return
 		case syscall.SIGHUP:

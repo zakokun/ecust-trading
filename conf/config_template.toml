@@ -1,3 +1,6 @@
+[trade]
+    symbol = "BTC/USDT"
+
 [db]
     addr = "127.0.0.1:3306"
     dbName = "trading"
