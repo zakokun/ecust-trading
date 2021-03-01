@@ -1,0 +1,11 @@
+[db]
+    addr = "127.0.0.1:3306"
+    dbName = "trading"
+    user = "root"
+    password = "root"
+    active = 10
+    idle = 5
+    idleTimeout = "4h"
+    queryTimeout = "5s"
+    execTimeout = "5s"
+    tranTimeout = "5s"

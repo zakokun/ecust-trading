@@ -10,7 +10,8 @@ import (
 var c *Config
 
 type Config struct {
-	DB *DB
+	DB     *DB
+	Symbol string
 }
 
 type DB struct {
@@ -22,7 +23,7 @@ type DB struct {
 }
 
 func init() {
-	configFile := flag.String("c", "./config.toml", "conf")
+	configFile := flag.String("c", "./conf/config_template.toml", "conf")
 	flag.Parse()
 
 	Conf := &Config{}

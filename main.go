@@ -1,7 +1,9 @@
 package main
 
 import (
+	"ecust-trading/conf"
 	"ecust-trading/exchange"
+	"ecust-trading/strategy"
 	"os"
 	"os/signal"
 	"syscall"
@@ -9,8 +11,11 @@ import (
 )
 
 func main() {
-	exchange.Register()
-	exchange.ListenTick()
+	ex := exchange.New(conf.Get().Symbol)
+	st := strategy.New()
+	svr := New(ex, st)
+
+
 	c := make(chan os.Signal, 1)
 	signal.Notify(c, syscall.SIGHUP, syscall.SIGQUIT, syscall.SIGTERM, syscall.SIGINT)
 	for {

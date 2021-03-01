@@ -18,9 +18,10 @@ type Trade struct {
 	TS     int64   // 时间戳
 }
 
-func Register(sy string) {
+func New(sy string) Ex {
 	ex = new(Huobi)
 	if err := ex.Start(); err != nil {
 		panic(err)
 	}
+	return ex
 }
