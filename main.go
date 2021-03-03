@@ -12,7 +12,7 @@ import (
 
 func main() {
 	ex := exchange.New(conf.Get().Trade.Symbol)
-	st := strategy.New()
+	st := new(strategy.Grid)
 	svr := New(ex, st)
 	svr.ListenTick()
 	c := make(chan os.Signal, 1)

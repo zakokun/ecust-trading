@@ -9,20 +9,22 @@ import (
 type Service struct {
 	AA int
 	Ex exchange.Ex // 对接的交易所接口
-	St strategy.St
+	St map[string]strategy.St
 }
 
-func New(e exchange.Ex, st strategy.St) *Service {
+func New(e exchange.Ex, st ...strategy.St) *Service {
 	svr := new(Service)
 	svr.Ex = e
-	svr.St = st
+	svr.St = make(map[string]strategy.St)
+	for _, v := range st {
+		svr.St[v.GetName()] = v
+	}
 	return svr
 }
 
 func (s *Service) Close() {
 	spew.Dump("close all service")
 	s.Ex.Close()
-	s.St.Close()
 }
 func (s *Service) ListenTick() {
 	ch := s.Ex.TickListener()
@@ -34,8 +36,13 @@ func (s *Service) ListenTick() {
 					s.Close()
 					return
 				}
-				s.St.GetPrice(td.Price)
+				for _, v := range s.St {
+					v.SendPrice(td.Price)
+				}
 			}
 		}
 	}()
+}
+
+func (s *Service) SaveDB() {
 }

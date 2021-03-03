@@ -11,9 +11,9 @@ import (
 type Huobi struct {
 	Name string
 	Ws   *websocket.Conn
-	Ch   chan *Trade
 }
 
+// 连接 监听数据，把各种数据写到对应的chan里面
 func (h *Huobi) Start() (err error) {
 	u := url.URL{Scheme: "ws", Host: "127.0.0.1:8000", Path: "/echo"}
 	log.Printf("connecting to %s", u.String())
@@ -32,20 +32,19 @@ func (h *Huobi) Close() (err error) {
 
 // TickListener 返回实时价格的channel
 // 持续获取价格数据
-func (h *Huobi) TickListener() chan *Trade {
-	h.Ch = make(chan *Trade, 1024)
+func (h *Huobi) TickListener() chan *TickData {
 	go func() {
 		for {
 			xx := rand.Float32()
-			td := &Trade{
+			td := &TickData{
 				From:   "huobi",
 				Symbol: "BTC/USDT",
 				Price:  xx,
 				TS:     time.Now().Unix(),
 			}
-			h.Ch <- td
+			tickChan <- td
 			time.Sleep(time.Second)
 		}
 	}()
-	return h.Ch
+	return tickChan
 }
