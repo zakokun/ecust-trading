@@ -18,7 +18,7 @@ type Ex interface {
 type TickData struct {
 	From   string  // 交易所名称
 	Symbol string  // 交易对名称
-	Price  float32 // 价格
+	Price  float64 // 价格
 	TS     int64   // 时间戳
 }
 

@@ -9,16 +9,13 @@ import (
 type Service struct {
 	AA int
 	Ex exchange.Ex // 对接的交易所接口
-	St map[string]strategy.St
+	St strategy.St
 }
 
-func New(e exchange.Ex, st ...strategy.St) *Service {
+func New(e exchange.Ex, st strategy.St) *Service {
 	svr := new(Service)
 	svr.Ex = e
-	svr.St = make(map[string]strategy.St)
-	for _, v := range st {
-		svr.St[v.GetName()] = v
-	}
+	svr.St = st
 	return svr
 }
 
@@ -36,9 +33,7 @@ func (s *Service) ListenTick() {
 					s.Close()
 					return
 				}
-				for _, v := range s.St {
-					v.SendPrice(td.Price)
-				}
+				s.St.SendPrice(td.Price)
 			}
 		}
 	}()

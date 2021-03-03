@@ -12,6 +12,8 @@ var (
 	lastTradePrice = nowPrice
 	diff           = 1.0
 	unit           = int64(0)
+
+	step = nowPrice * 0.05
 )
 
 func initStock() {

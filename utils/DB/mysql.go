@@ -5,17 +5,22 @@ import (
 )
 
 var (
-	DB *gorm.DB
+	DB *dbModel
 )
 
 type dbModel struct {
-	DB *gorm.DB
-	tickChan chan interface{}
-	tradeChan  chan interface{}
+	DB        *gorm.DB
+	tickChan  chan interface{}
+	tradeChan chan interface{}
 }
 
-func GetDB() {
-
+func initDB() {
+	DB = new(dbModel)
 }
 
-
+func GetDB() *dbModel {
+	if DB == nil {
+		initDB()
+	}
+	return DB
+}

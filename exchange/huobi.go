@@ -9,8 +9,12 @@ import (
 )
 
 type Huobi struct {
-	Name string
-	Ws   *websocket.Conn
+	Name   string
+	AppKey string
+	Secret string
+	Wallet float64 // 余额
+	Stock  float64 // 持仓
+	Ws     *websocket.Conn
 }
 
 // 连接 监听数据，把各种数据写到对应的chan里面
@@ -35,7 +39,7 @@ func (h *Huobi) Close() (err error) {
 func (h *Huobi) TickListener() chan *TickData {
 	go func() {
 		for {
-			xx := rand.Float32()
+			xx := rand.Float64()
 			td := &TickData{
 				From:   "huobi",
 				Symbol: "BTC/USDT",
