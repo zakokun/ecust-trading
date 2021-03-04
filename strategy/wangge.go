@@ -40,11 +40,14 @@ func (g *Grid) SendPrice(f float64) {
 	if g.buyStep == 0 || g.sellStep == 0 {
 		g.Init(f)
 	}
-	if f > g.lastTdPrice { // 下跌，判断卖出step
-
+	if f > g.lastTdPrice && f-g.lastTdPrice > g.sellStep { //上涨超过step
+		num := (f - g.lastTdPrice) / g.sellStep
+		
 		g.lastTdPrice = f
 		DB.GetDB()
-	} else { // 反之买入 判断buyStep
+	} else if f < g.lastTdPrice && g.lastTdPrice-f > g.buyStep { // 反之买入 判断buyStep
+		num := (g.lastTdPrice - f) / g.buyStep
+
 		g.lastTdPrice = f
 		DB.GetDB()
 	}
