@@ -6,3 +6,5 @@ type St interface {
 	SendPrice(f float64)
 	Close()
 }
+
+

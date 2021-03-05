@@ -42,7 +42,7 @@ func (g *Grid) SendPrice(f float64) {
 	}
 	if f > g.lastTdPrice && f-g.lastTdPrice > g.sellStep { //上涨超过step
 		num := (f - g.lastTdPrice) / g.sellStep
-		
+
 		g.lastTdPrice = f
 		DB.GetDB()
 	} else if f < g.lastTdPrice && g.lastTdPrice-f > g.buyStep { // 反之买入 判断buyStep
