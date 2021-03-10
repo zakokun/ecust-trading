@@ -1,7 +1,7 @@
 package exchange
 
 import (
-	"math/rand"
+	"github.com/huobirdcenter/huobi_golang/pkg/client"
 	"time"
 
 	"ecust-trading/conf"
@@ -13,30 +13,75 @@ import (
 )
 
 type Huobi struct {
-	Name   string
-	AppKey string
-	Secret string
-	Wallet float64 // 余额
-	Stock  float64 // 持仓
-	Client *marketwebsocketclient.Last24hCandlestickWebSocketClient
+	Name       string
+	AppKey     string
+	Secret     string
+	Wallet     float64 // 余额
+	Stock      float64 // 持仓
+	tickClient *marketwebsocketclient.Last24hCandlestickWebSocketClient
 }
 
 // 连接 监听数据，把各种数据写到对应的chan里面
 func (h *Huobi) Start() (err error) {
 	cf := conf.Get().Ex.Huobi
-	h.Client = new(marketwebsocketclient.Last24hCandlestickWebSocketClient).Init(cf.Host)
-	h.Client.SetHandler(
+	h.tickClient = new(marketwebsocketclient.Last24hCandlestickWebSocketClient).Init(cf.Host)
+	h.tickClient.SetHandler(
 		h.subscribe,
 		h.handler,
 	)
+	go h.startOneDay()
 	return
+}
+
+func (h *Huobi) startOneDay() {
+	for {
+		cf := conf.Get().Ex.Huobi
+		ct := new(client.MarketClient).Init(cf.Host)
+		optionalRequest := market.GetCandlestickOptionalRequest{Period: market.DAY1, Size: 1}
+		resp, err := ct.GetCandlestick("btcusdt", optionalRequest)
+		if err != nil {
+			log.Warn("ct.GetCandlestick(%s) err(%v)", "btcusdt", err)
+		}
+		for _, v := range resp {
+			op, ok := v.Open.Float64()
+			if !ok {
+				log.Warn("v.Open.Float64(%v) err(%v)", v.Open, err)
+				continue
+			}
+			cl, ok := v.Close.Float64()
+			if !ok {
+				log.Warn("v.Close.Float64(%v) err(%v)", v.Open, err)
+				continue
+			}
+			lo, ok := v.Low.Float64()
+			if !ok {
+				log.Warn("v.Low.Float64(%v) err(%v)", v.Open, err)
+				continue
+			}
+			hi, ok := v.High.Float64()
+			if !ok {
+				log.Warn("v.High.Float64(%v) err(%v)", v.Open, err)
+				continue
+			}
+			td := &CandleData{
+				From:   "huobi",
+				Symbol: conf.Get().Trade.Symbol,
+				Open:   op,
+				Close:  cl,
+				Low:    lo,
+				High:   hi,
+				TS:     time.Now().Unix(),
+			}
+			Candle1DayChan <- td
+		}
+		time.Sleep(time.Hour)
+	}
 }
 
 func (h *Huobi) subscribe() {
 	cf := conf.Get().Ex.Huobi
-	symbol := conf.Get().Trade.Symbol
 	//client.Request("btcusdt", "1608")
-	h.Client.Subscribe(symbol, cf.ClientId)
+	h.tickClient.Subscribe(conf.Get().Trade.Symbol, cf.ClientId)
 }
 
 func (h *Huobi) handler(resp interface{}) {
@@ -45,6 +90,18 @@ func (h *Huobi) handler(resp interface{}) {
 		if &candlestickResponse != nil && candlestickResponse.Tick != nil {
 			t := candlestickResponse.Tick
 			log.Info("get data %s", spew.Sdump(t))
+			fp, ok := t.Close.Float64()
+			if !ok {
+				log.Warn("format decimal to float64(%v) err!", t.Close)
+				return
+			}
+			td := &TickData{
+				From:   "huobi",
+				Symbol: conf.Get().Trade.Symbol,
+				Price:  fp,
+				TS:     time.Now().Unix(),
+			}
+			tickChan <- td
 		}
 	} else {
 		log.Info("get unexpect data from client: %s", spew.Sdump(resp))
@@ -52,25 +109,15 @@ func (h *Huobi) handler(resp interface{}) {
 }
 
 func (h *Huobi) Close() (err error) {
+	h.tickClient.Close()
+	close(tickChan)
+	close(Candle1DayChan)
 	return
 }
 
 // TickListener 返回实时价格的channel
 // 持续获取价格数据
 func (h *Huobi) TickListener() chan *TickData {
-	go func() {
-		for {
-			xx := rand.Float64()
-			td := &TickData{
-				From:   "huobi",
-				Symbol: "BTC/USDT",
-				Price:  xx,
-				TS:     time.Now().Unix(),
-			}
-			tickChan <- td
-			time.Sleep(time.Second)
-		}
-	}()
 	return tickChan
 }
 
