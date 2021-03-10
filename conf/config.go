@@ -11,11 +11,23 @@ var c *Config
 
 type Config struct {
 	DB    *DBConf
+	Ex    *Exchange
 	Trade *TradeConf
 }
 
 type TradeConf struct {
 	Symbol string
+}
+
+type Exchange struct {
+	Huobi *Huobi
+}
+type Huobi struct {
+	Proto    string
+	Host     string
+	Port     string
+	Path     string
+	ClientId string
 }
 
 type DBConf struct {

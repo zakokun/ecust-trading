@@ -1,11 +1,15 @@
 package exchange
 
 import (
-	"github.com/gorilla/websocket"
-	"log"
 	"math/rand"
-	"net/url"
 	"time"
+
+	"ecust-trading/conf"
+	"ecust-trading/utils/log"
+
+	"github.com/davecgh/go-spew/spew"
+	"github.com/huobirdcenter/huobi_golang/pkg/client/marketwebsocketclient"
+	"github.com/huobirdcenter/huobi_golang/pkg/model/market"
 )
 
 type Huobi struct {
@@ -14,24 +18,41 @@ type Huobi struct {
 	Secret string
 	Wallet float64 // 余额
 	Stock  float64 // 持仓
-	Ws     *websocket.Conn
+	Client *marketwebsocketclient.Last24hCandlestickWebSocketClient
 }
 
 // 连接 监听数据，把各种数据写到对应的chan里面
 func (h *Huobi) Start() (err error) {
-	u := url.URL{Scheme: "ws", Host: "127.0.0.1:8000", Path: "/echo"}
-	log.Printf("connecting to %s", u.String())
-	h.Ws, _, err = websocket.DefaultDialer.Dial(u.String(), nil)
-	if err != nil {
-		log.Fatal("dial:", err)
-	}
-	defer h.Ws.Close()
+	cf := conf.Get().Ex.Huobi
+	h.Client = new(marketwebsocketclient.Last24hCandlestickWebSocketClient).Init(cf.Host)
+	h.Client.SetHandler(
+		h.subscribe,
+		h.handler,
+	)
 	return
+}
+
+func (h *Huobi) subscribe() {
+	cf := conf.Get().Ex.Huobi
+	symbol := conf.Get().Trade.Symbol
+	//client.Request("btcusdt", "1608")
+	h.Client.Subscribe(symbol, cf.ClientId)
+}
+
+func (h *Huobi) handler(resp interface{}) {
+	candlestickResponse, ok := resp.(market.SubscribeLast24hCandlestickResponse)
+	if ok {
+		if &candlestickResponse != nil && candlestickResponse.Tick != nil {
+			t := candlestickResponse.Tick
+			log.Info("get data %s", spew.Sdump(t))
+		}
+	} else {
+		log.Info("get unexpect data from client: %s", spew.Sdump(resp))
+	}
 }
 
 func (h *Huobi) Close() (err error) {
 	return
-	return h.Ws.Close()
 }
 
 // TickListener 返回实时价格的channel
@@ -51,4 +72,8 @@ func (h *Huobi) TickListener() chan *TickData {
 		}
 	}()
 	return tickChan
+}
+
+func (h *Huobi) Kindle1DayListener() chan *CandleData {
+	return Candle1DayChan
 }
