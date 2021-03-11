@@ -1,7 +1,9 @@
 package exchange
 
 import (
+	"fmt"
 	"github.com/huobirdcenter/huobi_golang/pkg/client"
+	"github.com/huobirdcenter/huobi_golang/pkg/model/order"
 	"time"
 
 	"ecust-trading/conf"
@@ -36,7 +38,7 @@ func (h *Huobi) Start() (err error) {
 func (h *Huobi) startOneDay() {
 	for {
 		cf := conf.Get().Ex.Huobi
-		ct := new(client.MarketClient).Init(cf.Host)
+		ct := new(client.MarketClient).Init(cf.APIHost)
 		optionalRequest := market.GetCandlestickOptionalRequest{Period: market.DAY1, Size: 1}
 		resp, err := ct.GetCandlestick("btcusdt", optionalRequest)
 		if err != nil {
@@ -112,6 +114,24 @@ func (h *Huobi) Close() (err error) {
 	h.tickClient.Close()
 	close(tickChan)
 	close(Candle1DayChan)
+	return
+}
+
+func (h *Huobi) Trade(td *TradeMsg) (err error) {
+	cf := conf.Get().Ex.Huobi
+	ct := new(client.OrderClient).Init(cf.AppKey, cf.Secret, cf.APIHost)
+	od := &order.PlaceOrderRequest{
+		AccountId: cf.ClientId,
+		Symbol:    td.Symbol,
+		Type:      td.Tp,
+		Amount:    fmt.Sprintf("%.2f", td.Num),
+		Price:     fmt.Sprintf("%.2f", td.Price),
+	}
+	_, err = ct.PlaceOrder(od)
+	if err != nil {
+		log.Info("PlaceOrder error!:%v", err)
+		return
+	}
 	return
 }
 

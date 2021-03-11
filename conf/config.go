@@ -25,9 +25,12 @@ type Exchange struct {
 type Huobi struct {
 	Proto    string
 	Host     string
+	APIHost  string
 	Port     string
 	Path     string
 	ClientId string
+	AppKey   string
+	Secret   string
 }
 
 type DBConf struct {

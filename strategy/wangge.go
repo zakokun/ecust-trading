@@ -35,14 +35,13 @@ func (g *Grid) GetName() string {
 }
 
 // 获取实时价格，接收，做判断
-func (g *Grid) SendPrice(f float64) {
+func (g *Grid) SendPrice(f float64) *TradeMsg {
 	fmt.Printf("get price is:%.2f\n", f)
 	if g.buyStep == 0 || g.sellStep == 0 {
 		g.Init(f)
 	}
 	if f > g.lastTdPrice && f-g.lastTdPrice > g.sellStep { //上涨超过step
 		num := (f - g.lastTdPrice) / g.sellStep
-
 		g.lastTdPrice = f
 		DB.GetDB()
 	} else if f < g.lastTdPrice && g.lastTdPrice-f > g.buyStep { // 反之买入 判断buyStep
