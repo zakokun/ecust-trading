@@ -1,12 +1,9 @@
 package strategy
 
-import "ecust-trading/exchange"
-
 // 策略模块，传入价格，返回买卖动作
 type St interface {
 	GetName() string
-	SendPrice(f float64) *exchange.TradeMsg
-	Close()
+	SendPrice(f float64) *TradeMsg
 }
 
 type TradeMsg struct {
@@ -19,5 +16,3 @@ type TradeMsg struct {
 	// 交易对象
 	Symbol string
 }
-
-

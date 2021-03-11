@@ -1,6 +1,7 @@
 package DB
 
 import (
+	"ecust-trading/strategy"
 	"github.com/jinzhu/gorm"
 )
 
@@ -23,4 +24,8 @@ func GetDB() *dbModel {
 		initDB()
 	}
 	return DB
+}
+
+func (d *dbModel) SaveTradeData(msg *strategy.TradeMsg) (err error) {
+	return
 }

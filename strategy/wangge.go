@@ -2,7 +2,7 @@ package strategy
 
 import (
 	"ecust-trading/utils/DB"
-	"fmt"
+	"ecust-trading/utils/log"
 	"time"
 )
 
@@ -35,24 +35,36 @@ func (g *Grid) GetName() string {
 }
 
 // 获取实时价格，接收，做判断
-func (g *Grid) SendPrice(f float64) *TradeMsg {
-	fmt.Printf("get price is:%.2f\n", f)
+func (g *Grid) SendPrice(f float64) (msg *TradeMsg) {
+	log.Info("get price is:%.2f\n", f)
 	if g.buyStep == 0 || g.sellStep == 0 {
 		g.Init(f)
 	}
 	if f > g.lastTdPrice && f-g.lastTdPrice > g.sellStep { //上涨超过step
-		num := (f - g.lastTdPrice) / g.sellStep
+		msg = &TradeMsg{
+			Tp:     "sell_market",
+			Price:  f,
+			Num:    (f - g.lastTdPrice) / g.sellStep,
+			Symbol: "btsusdt",
+		}
+
+		if err := DB.GetDB().SaveTradeData(msg); err != nil {
+			log.Error("db.SaveTradeData(%v) err(%v)", msg, err)
+			return
+		}
 		g.lastTdPrice = f
-		DB.GetDB()
 	} else if f < g.lastTdPrice && g.lastTdPrice-f > g.buyStep { // 反之买入 判断buyStep
-		num := (g.lastTdPrice - f) / g.buyStep
-
+		msg = &TradeMsg{
+			Tp:     "buy_market",
+			Price:  f,
+			Num:    (g.lastTdPrice - f) / g.buyStep,
+			Symbol: "btsusdt",
+		}
+		if err := DB.GetDB().SaveTradeData(msg); err != nil {
+			log.Error("db.SaveTradeData(%v) err(%v)", msg, err)
+			return
+		}
 		g.lastTdPrice = f
-		DB.GetDB()
 	}
-}
-
-// 获取实时价格，接收，做判断
-func (g *Grid) Close() {
-	// 策略模块看看要不要关闭
+	return
 }
