@@ -1,7 +1,6 @@
 package main
 
 import (
-	"ecust-trading/conf"
 	"ecust-trading/exchange"
 	"ecust-trading/strategy"
 	"os"
@@ -11,7 +10,7 @@ import (
 )
 
 func main() {
-	ex := exchange.New(conf.Get().Trade.Symbol)
+	ex := exchange.New()
 	st := new(strategy.Grid)
 	svr := New(ex, st)
 	svr.ListenTick()
