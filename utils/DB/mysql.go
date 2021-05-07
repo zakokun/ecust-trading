@@ -1,7 +1,6 @@
 package DB
 
 import (
-	"ecust-trading/strategy"
 	"github.com/jinzhu/gorm"
 )
 
@@ -11,12 +10,32 @@ var (
 
 type dbModel struct {
 	DB        *gorm.DB
-	tickChan  chan interface{}
 	tradeChan chan interface{}
+	dayChan   chan *dayCandle
+}
+
+type dayCandle struct {
+	Symbol string
+	Open   float64
+	Close  float64
+	Low    float64
+	High   float64
+	TS     int64
 }
 
 func initDB() {
-	DB = new(dbModel)
+	conn, err := gorm.Open("mysql", buildDSN())
+	if err != nil {
+		panic(err)
+	}
+	DB = &dbModel{
+		DB:      conn,
+		dayChan: make(chan *dayCandle, 1024),
+	}
+}
+
+func buildDSN() string {
+	return "aaa"
 }
 
 func GetDB() *dbModel {
@@ -24,8 +43,4 @@ func GetDB() *dbModel {
 		initDB()
 	}
 	return DB
-}
-
-func (d *dbModel) SaveTradeData(msg *strategy.TradeMsg) (err error) {
-	return
 }
