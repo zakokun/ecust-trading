@@ -1,6 +1,7 @@
 package exchange
 
 import (
+	"ecust-trading/utils/DB"
 	"fmt"
 	"github.com/huobirdcenter/huobi_golang/pkg/client"
 	"github.com/huobirdcenter/huobi_golang/pkg/model/order"
@@ -35,19 +36,25 @@ func (h *Huobi) Start() (err error) {
 	return
 }
 
+func (h *Huobi) getAllFinance() {
+	db := DB.GetDB().Table("")
+
+}
+
 func (h *Huobi) startOneDay() {
 	for {
 		cf := conf.Get().Ex.Huobi
 		ct := new(client.MarketClient).Init(cf.APIHost)
-		optionalRequest := market.GetCandlestickOptionalRequest{Period: market.DAY1, Size: 1}
+		optionalRequest := market.GetCandlestickOptionalRequest{Period: market.DAY1, Size: 10}
 		resp, err := ct.GetCandlestick("btcusdt", optionalRequest)
 		if err != nil {
 			log.Warn("ct.GetCandlestick(%s) err(%v)", "btcusdt", err)
 		}
+		log.Warn("v.Open.Float64(%v) err(%v)", resp, err)
 		for _, v := range resp {
 			op, ok := v.Open.Float64()
 			if !ok {
-				log.Warn("v.Open.Float64(%v) err(%v)", v.Open, err)
+				log.Warn("v.Open.Float64(%v) err(%v)", v.Open, op)
 				continue
 			}
 			cl, ok := v.Close.Float64()
@@ -76,7 +83,7 @@ func (h *Huobi) startOneDay() {
 			}
 			Candle1DayChan <- td
 		}
-		time.Sleep(time.Hour)
+		time.Sleep(time.Second)
 	}
 }
 
@@ -84,6 +91,7 @@ func (h *Huobi) subscribe() {
 	cf := conf.Get().Ex.Huobi
 	//client.Request("btcusdt", "1608")
 	h.tickClient.Subscribe(conf.Get().Trade.Symbol, cf.ClientId)
+	h.tickClient.Subscribe("bchusdt", cf.ClientId)
 }
 
 func (h *Huobi) handler(resp interface{}) {

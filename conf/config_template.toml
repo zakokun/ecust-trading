@@ -16,7 +16,7 @@
 [Ex.huobi]
     Proto = "ws"
     Host = "wss://ws.huo.pro"
-    APIHost = "https://api.huobi.pro"
+    APIHost = "api.huobi.pro"
     Port  = "8081"
     Path  = "/path"
     ClientId = "1068"

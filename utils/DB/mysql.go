@@ -1,18 +1,14 @@
 package DB
 
 import (
+	"ecust-trading/conf"
+	"fmt"
 	"github.com/jinzhu/gorm"
 )
 
 var (
-	DB *dbModel
+	DB *gorm.DB
 )
-
-type dbModel struct {
-	DB        *gorm.DB
-	tradeChan chan interface{}
-	dayChan   chan *dayCandle
-}
 
 type dayCandle struct {
 	Symbol string
@@ -28,17 +24,16 @@ func initDB() {
 	if err != nil {
 		panic(err)
 	}
-	DB = &dbModel{
-		DB:      conn,
-		dayChan: make(chan *dayCandle, 1024),
-	}
+	DB = conn
 }
 
 func buildDSN() string {
-	return "aaa"
+	sbl := "%s:%s@tcp(%s:%d)/%s?timeout=5s&readTimeout=5s&writeTimeout=5s&parseTime=true&loc=Local&charset=utf8"
+	dbConf := conf.Get().DB
+	return fmt.Sprintf(sbl, dbConf.User, dbConf.Password, dbConf.Addr, dbConf.Port, dbConf.DBName)
 }
 
-func GetDB() *dbModel {
+func GetDB() *gorm.DB {
 	if DB == nil {
 		initDB()
 	}
