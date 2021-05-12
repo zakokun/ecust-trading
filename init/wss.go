@@ -1,6 +1,7 @@
 package main
 
 import (
+	_ "github.com/go-sql-driver/mysql"
 	"github.com/huobirdcenter/huobi_golang/config"
 	"github.com/huobirdcenter/huobi_golang/logging/applogger"
 	"github.com/huobirdcenter/huobi_golang/pkg/client"
@@ -11,15 +12,13 @@ import (
 
 type Stocks struct {
 	Id     int64
-	Tid    int64
+	TS     int64
 	Symbol string
 	Open   float64
 	Close  float64
 	Low    float64
 	High   float64
-	Vol    float64
-	Ctime  string
-	Mtime  string
+	Volume int64
 }
 
 func main() {
@@ -64,8 +63,8 @@ func main() {
 			c, _ := vv.Close.Float64()
 			l, _ := vv.Low.Float64()
 			h, _ := vv.High.Float64()
-			vo, _ := vv.Vol.Float64()
-			tId := vv.Id
+			vo := vv.Vol.IntPart()
+			ts := vv.Id
 
 			ss := &Stocks{
 				Symbol: v + "usdt",
@@ -73,10 +72,12 @@ func main() {
 				Close:  c,
 				Low:    l,
 				High:   h,
-				Vol:    vo,
-				Tid:    tId,
+				Volume: vo,
+				TS:     ts,
 			}
-			conn.Table("stocks").Create()
+			if err = conn.Table("stocks").Create(ss).Error; err != nil {
+				applogger.Error("save db get err(%v) val(%+v)", err, ss)
+			}
 		}
 
 		applogger.Info("get price %v", resp)

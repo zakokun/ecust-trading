@@ -3,6 +3,7 @@ package main
 import (
 	"ecust-trading/exchange"
 	"ecust-trading/strategy"
+	"net/http"
 	"os"
 	"os/signal"
 	"syscall"
@@ -14,6 +15,9 @@ func main() {
 	st := new(strategy.Grid)
 	svr := New(ex, st)
 	svr.ListenTick()
+
+	http.ListenAndServe(":8000", nil)
+
 	c := make(chan os.Signal, 1)
 	signal.Notify(c, syscall.SIGHUP, syscall.SIGQUIT, syscall.SIGTERM, syscall.SIGINT)
 	for {

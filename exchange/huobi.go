@@ -1,7 +1,6 @@
 package exchange
 
 import (
-	"ecust-trading/utils/DB"
 	"fmt"
 	"github.com/huobirdcenter/huobi_golang/pkg/client"
 	"github.com/huobirdcenter/huobi_golang/pkg/model/order"
@@ -37,7 +36,7 @@ func (h *Huobi) Start() (err error) {
 }
 
 func (h *Huobi) getAllFinance() {
-	db := DB.GetDB().Table("")
+	//db := DB.GetDB().Table("")
 
 }
 
