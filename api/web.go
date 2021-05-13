@@ -7,5 +7,6 @@ func DefaultServer() {
 }
 
 func getWallet(w http.ResponseWriter, r *http.Request) {
+	r.GetBody
 
 }

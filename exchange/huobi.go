@@ -1,7 +1,11 @@
 package exchange
 
 import (
+	"ecust-trading/utils/DB"
 	"fmt"
+	"github.com/davecgh/go-spew/spew"
+	"github.com/huobirdcenter/huobi_golang/config"
+	"github.com/huobirdcenter/huobi_golang/logging/applogger"
 	"github.com/huobirdcenter/huobi_golang/pkg/client"
 	"github.com/huobirdcenter/huobi_golang/pkg/model/order"
 	"time"
@@ -9,30 +13,86 @@ import (
 	"ecust-trading/conf"
 	"ecust-trading/utils/log"
 
-	"github.com/davecgh/go-spew/spew"
 	"github.com/huobirdcenter/huobi_golang/pkg/client/marketwebsocketclient"
 	"github.com/huobirdcenter/huobi_golang/pkg/model/market"
 )
 
 type Huobi struct {
-	Name       string
-	AppKey     string
-	Secret     string
-	Wallet     float64 // 余额
-	Stock      float64 // 持仓
-	tickClient *marketwebsocketclient.Last24hCandlestickWebSocketClient
+	Name   string
+	AppKey string
+	Secret string
+	Wallet float64 // 余额
+	Stock  float64 // 持仓
+	client *marketwebsocketclient.CandlestickWebSocketClient
+}
+
+// SubMsg websocket 订阅资产的消息
+type SubMsg struct {
+	Sub string
+	Id  string
+}
+
+// UnsubMsg websocket 取消订阅资产
+type UnsubMsg struct {
+	Unsub string
+	Id    string
 }
 
 // 连接 监听数据，把各种数据写到对应的chan里面
 func (h *Huobi) Start() (err error) {
 	cf := conf.Get().Ex.Huobi
-	h.tickClient = new(marketwebsocketclient.Last24hCandlestickWebSocketClient).Init(cf.Host)
-	h.tickClient.SetHandler(
+	h.client = new(marketwebsocketclient.CandlestickWebSocketClient).Init(cf.Host)
+	h.client.SetHandler(
 		h.subscribe,
 		h.handler,
 	)
-	go h.startOneDay()
+	go h.startListener()
 	return
+}
+
+func reqAndSubscribeCandlestick() {
+
+	client := new(marketwebsocketclient.CandlestickWebSocketClient).Init(config.Host)
+
+	client.SetHandler(
+		func() {
+			client.Request("btcusdt", "1min", 1569361140, 1569366420, "2305")
+
+			client.Subscribe("btcusdt", "1min", "2118")
+		},
+		func(response interface{}) {
+			resp, ok := response.(market.SubscribeCandlestickResponse)
+			if ok {
+				if &resp != nil {
+					if resp.Tick != nil {
+						t := resp.Tick
+						applogger.Info("Candlestick update, id: %d, count: %d, vol: %v [%v-%v-%v-%v]",
+							t.Id, t.Count, t.Vol, t.Open, t.Close, t.Low, t.High)
+					}
+
+					if resp.Data != nil {
+						applogger.Info("WebSocket returned data, count=%d", len(resp.Data))
+						for _, t := range resp.Data {
+							applogger.Info("Candlestick data, id: %d, count: %d, vol: %v [%v-%v-%v-%v]",
+								t.Id, t.Count, t.Vol, t.Open, t.Count, t.Low, t.High)
+						}
+					}
+				}
+			} else {
+				applogger.Warn("Unknown response: %v", resp)
+			}
+
+		})
+
+	client.Connect(true)
+
+	fmt.Println("Press ENTER to unsubscribe and stop...")
+	fmt.Scanln()
+
+	client.UnSubscribe("btcusdt", "1min", "2118")
+
+	client.Close()
+	applogger.Info("Client closed")
 }
 
 func (h *Huobi) getAllFinance() {
@@ -40,7 +100,7 @@ func (h *Huobi) getAllFinance() {
 
 }
 
-func (h *Huobi) startOneDay() {
+func (h *Huobi) startListener() {
 	for {
 		cf := conf.Get().Ex.Huobi
 		ct := new(client.MarketClient).Init(cf.APIHost)
@@ -89,8 +149,13 @@ func (h *Huobi) startOneDay() {
 func (h *Huobi) subscribe() {
 	cf := conf.Get().Ex.Huobi
 	//client.Request("btcusdt", "1608")
-	h.tickClient.Subscribe(conf.Get().Trade.Symbol, cf.ClientId)
-	h.tickClient.Subscribe("bchusdt", cf.ClientId)
+
+	flist := DB.GetDB().Table("stocks").Find()
+
+	h.client.Subscribe(h.makeSymbol())
+}
+func (h *Huobi) makeSymbol(name, ts string) string {
+	return fmt.Sprintf("market.%s.kline.%s", name, ts)
 }
 
 func (h *Huobi) handler(resp interface{}) {
